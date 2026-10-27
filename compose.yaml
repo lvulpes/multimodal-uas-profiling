@@ -1,0 +1,63 @@
+# Run via the Makefile on the host:  make image | make claude | make claude-auto | make shell
+# Requires Docker Compose >= 2.24 (optional env_file). Create the git repo BEFORE first `up`
+# (see README) so ./.git/hooks exists and is not created as root.
+name: uas-linkloss
+
+x-build: &build
+  context: docker
+  dockerfile: Dockerfile
+  args:
+    USER_UID: ${HOST_UID:-1000}
+    USER_GID: ${HOST_GID:-1000}
+
+services:
+  claude:
+    build:
+      <<: *build
+      target: claude
+    image: uas-linkloss/claude:dev
+    init: true
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    # NET_ADMIN/NET_RAW exist only so entrypoint.sh can install the firewall as root;
+    # they are gone once it drops to the "dev" user.
+    cap_add: [NET_ADMIN, NET_RAW]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: ${CLAUDE_MEM_LIMIT:-16g}
+    shm_size: 1g
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      TZ: Europe/Stockholm
+    volumes:
+      # ":z" relabels for SELinux (Fedora). Remove it if you do not use SELinux.
+      - .:/workspace:z
+      # Hooks run on the HOST at commit time: keep them read-only inside the sandbox.
+      - ./.git/hooks:/workspace/.git/hooks:ro,z
+      - claude-home:/home/dev/.claude   # login, history, per-user settings (survives --rm)
+      - ccache:/home/dev/.ccache
+
+  # Headless batch runs (no Claude, no API access needed). `docker compose --profile campaign run --rm campaign`
+  campaign:
+    profiles: ["campaign"]
+    build:
+      <<: *build
+      target: sim
+    image: uas-linkloss/sim:dev
+    init: true
+    working_dir: /workspace
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    security_opt: ["no-new-privileges:true"]
+    shm_size: 1g
+    volumes:
+      - .:/workspace:z
+      - ccache:/tmp/ccache
+    command: ["make", "campaign"]
+    # TODO(POC): if INET emulation needs TAP/raw sockets, add `devices: ["/dev/net/tun"]` and the
+    # narrowest capability set that works (see docs/architecture.md, open question 1).
+
+volumes:
+  claude-home:
+  ccache:

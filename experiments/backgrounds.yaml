@@ -1,0 +1,11 @@
+# Radio background levels (factor `radio_background`). Placeholders for the simulation POC.
+
+low:
+  description: Lightly loaded cell.
+  # TODO(POC): number/traffic of background UEs in Simu5G.
+
+medium:
+  description: Moderately loaded cell.
+
+high:
+  description: Heavily loaded cell.

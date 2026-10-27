@@ -1,0 +1,14 @@
+# Disruption levels (factor `disruption`). Placeholders: parameters to be set in the simulation POC.
+# H3 compares the response to link loss against benign congestion and weak radio.
+
+link_loss:
+  description: Hard C2 link loss (radio link goes away).
+  # TODO(POC): how it is realised (e.g. drop all C2 traffic / radio path removed), duration, onset time.
+
+congestion:
+  description: Benign congestion - link stays up, delay and loss increase from competing traffic.
+  # TODO(POC): competing traffic model and intensity.
+
+weak_radio:
+  description: Degraded radio - low SNR / high loss without the link fully going away.
+  # TODO(POC): path loss / interference profile and how it ramps.

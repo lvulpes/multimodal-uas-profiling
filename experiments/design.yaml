@@ -1,0 +1,31 @@
+# THE factor grid. Nothing else may hard-code profile/disruption/background/seed lists.
+#
+# The proposal fixes the TOTALS (216 main, 48 pilot, 18 extra) but not the factorisation. The grids
+# below are ONE assumption that hits the totals; confirm or replace them (and update tests/test_design.py
+# only if the totals change):
+#   main : 4 profiles x 3 disruptions x 3 backgrounds x 6 seeds = 216
+#   pilot: 4 profiles x 3 disruptions x 2 backgrounds x 2 seeds = 48
+# Profile names are placeholders until the GS/flight stacks are chosen.
+#
+# Pilot seeds are disjoint from main seeds on purpose: decisions tuned on pilot data must not be
+# evaluated on the same randomness.
+
+phases:
+  pilot:
+    factors:
+      profile: [profile_a, profile_b, profile_c, profile_d]
+      disruption: [link_loss, congestion, weak_radio]
+      radio_background: [low, high]
+      seed: {base: 9000, count: 2}
+
+  main:
+    factors:
+      profile: [profile_a, profile_b, profile_c, profile_d]
+      disruption: [link_loss, congestion, weak_radio]
+      radio_background: [low, medium, high]
+      seed: {base: 1000, count: 6}
+
+  # 18 extra runs are planned in the proposal; purpose not specified there (H4 equalised-failsafe
+  # runs are one candidate). Left empty until decided.
+  extra:
+    factors: null

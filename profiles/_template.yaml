@@ -1,0 +1,24 @@
+# Copy to profiles/<name>.yaml. Everything must be declarative and pinned (see skill: add-profile).
+name: profile_x
+
+flight:
+  stack: TBD            # e.g. PX4 or ArduPilot SITL
+  version: TBD          # pinned tag/commit (submodule under sim/flight/)
+  params_file: sim/flight/params/profile_x.params
+
+gs:
+  software: TBD         # ground-station software
+  version: TBD
+  config_file: sim/gs/profile_x.conf
+
+link:
+  protocol: TBD         # as sent on the wire by this stack
+  notes: ""
+
+failsafe:               # H4: normalised keys, mapped to the stack's native parameter names
+  timeout_s: TBD
+  action: TBD           # e.g. return-to-launch / loiter / land
+  native:               # e.g. {param_name: value}
+    {}
+
+notes: ""

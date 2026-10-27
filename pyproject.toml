@@ -1,0 +1,17 @@
+[project]
+name = "linkloss"
+version = "0.1.0"
+description = "Link-loss response as a UAS fingerprint (MSc thesis code)"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas", "pyarrow", "pyyaml", "scikit-learn", "scipy"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
