@@ -46,6 +46,7 @@ git init                      # BEFORE the first compose run, so .git/hooks is n
 cp .env.example .env          # optional: git identity, API key, extra firewall domains
 make image                    # first build compiles OMNeT++/INET/Simu5G: slow, then cached
 make claude                   # starts Claude Code in the sandbox; log in on first run
+make shell                    # Drop into container directly to run commands
 ```
 
 - `make claude-auto` starts Claude with permission prompts off. The container is the guardrail
