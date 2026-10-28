@@ -6,10 +6,11 @@ RUN   ?=
 PHASE ?= main
 
 .DEFAULT_GOAL := help
-.PHONY: help image claude claude-auto shell sim-build sim-run pilot campaign analyze test lint
+.PHONY: help image claude claude-auto shell sim-build sim-run pilot campaign analyze test lint \
+        smoke failsafe stage1
 
 help: ## Show targets
-	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
 
 # ---------------------------------------------------------------- host side (outside the container)
 image: ## [host] Build the sandbox image
@@ -32,6 +33,16 @@ sim-run: ## Run one experiment: make sim-run RUN=<run_id>
 	@test -n "$(RUN)" || { echo "usage: make sim-run RUN=<run_id>"; exit 2; }
 	python -m linkloss.orchestrate run $(RUN)
 
+STAGE1_PROFILES ?= px4_pymavlink ardupilot_pymavlink
+
+smoke: ## Stage 1: heartbeat/arm/takeoff per stack (make smoke STAGE1_PROFILES=px4_pymavlink)
+	@set -e; for p in $(STAGE1_PROFILES); do python sim/smoke/smoke.py --profile $$p; done
+
+failsafe: ## Stage 1: cut the C2 link, check the failsafe fires, per stack
+	@set -e; for p in $(STAGE1_PROFILES); do python sim/smoke/failsafe.py --profile $$p; done
+
+stage1: smoke failsafe ## Stage 1 pass criteria (docs/poc-plan.md)
+
 pilot: ## Run every pilot-phase run
 	python -m linkloss.orchestrate run-phase pilot
 
@@ -45,4 +56,4 @@ test: ## pytest
 	pytest
 
 lint: ## ruff
-	ruff check src tests
+	ruff check src tests sim
