@@ -1,0 +1,5 @@
+# Raw and derived data never go in git (CLAUDE.md rule 2).
+data/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
