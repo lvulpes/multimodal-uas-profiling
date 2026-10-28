@@ -262,6 +262,7 @@ class Gcs:
             source_component=gcs["component_id"],
         )
         self.state = VehicleState()
+        self._timesync_reply = -1
         self._send_lock = threading.Lock()
         self._halt = threading.Event()
         self._hb_period = 1.0 / gcs["heartbeat_hz"]
@@ -295,6 +296,8 @@ class Gcs:
             self.state.heartbeat = msg
         elif kind == "GLOBAL_POSITION_INT":
             self.state.position = msg
+        elif kind == "TIMESYNC" and msg.tc1 != 0:  # tc1 == 0 is the vehicle's own request
+            self._timesync_reply = msg.ts1
         elif kind == "STATUSTEXT":
             self.state.statustext.append(msg.text)
             log.info("vehicle: %s", msg.text)
@@ -434,6 +437,18 @@ class Gcs:
         )
         log.info("takeoff reached %.1f m", self.state.position.relative_alt / 1000.0)
 
+    def measure_rtt(self, samples: int, interval_s: float, timeout_s: float) -> list[float | None]:
+        """Application-level RTT (ms) via MAVLink TIMESYNC; None = no answer within timeout_s."""
+        rtts: list[float | None] = []
+        for _ in range(samples):
+            ts1 = time.monotonic_ns()
+            with self._send_lock:
+                self.conn.mav.timesync_send(0, ts1)
+            answered = self.wait_for_quietly(lambda ts1=ts1: self._timesync_reply == ts1, timeout_s)
+            rtts.append((time.monotonic_ns() - ts1) / 1e6 if answered else None)
+            self.wait_for_quietly(lambda: False, interval_s)
+        return rtts
+
     def _takeoff_mode_ok(self) -> bool:
         """PX4 takes off from any mode via NAV_TAKEOFF; ArduCopter needs GUIDED."""
         return self.stack != "ardupilot" or mode_of(self.state.heartbeat) == "GUIDED"
@@ -482,13 +497,14 @@ class Session:
     profile: dict[str, Any]
     log_dir: Path
     gcs: Gcs
-    relay: UdpRelay
+    link: str
+    relay: UdpRelay | None  # None when the C2 path is OMNeT++
     monitor: Monitor
     summary: dict[str, Any]
 
 
-def run_test(test: str, body: Any) -> int:
-    """Parse --profile, start stack + relay + monitor + GCS, run body(session), tear down.
+def run_test(test: str, body: Any, links: tuple[str, ...] = ("relay", "omnetpp")) -> int:
+    """Parse args, start C2 path + monitor + GCS + stack, run body(session), tear down.
 
     Exit code: 0 = all pass criteria met, 1 = a criterion failed, 2 = harness error.
     """
@@ -496,9 +512,13 @@ def run_test(test: str, body: Any) -> int:
 
     parser = argparse.ArgumentParser(description=f"stage-1 {test} test")
     parser.add_argument("--profile", required=True, help="profile name under profiles/")
+    parser.add_argument("--link", choices=links, help="C2 path (default: config.yaml link)")
     args = parser.parse_args()
 
     cfg = load_yaml(CONFIG)
+    link = args.link or cfg["link"]
+    if link not in links:
+        parser.error(f"{test} supports --link {'/'.join(links)}, config.yaml says {link}")
     profile = load_profile(args.profile)
     stack = profile["flight"]["stack"]
     ports = cfg["stacks"][stack]
@@ -509,19 +529,28 @@ def run_test(test: str, body: Any) -> int:
         "profile": args.profile,
         "stack": stack,
         "version": profile["flight"]["version"],
+        "link": link,
         "started": datetime.now(timezone.utc),
         "checks": {},
     }
 
-    relay = UdpRelay(ports["vehicle_port"], cfg["gcs"]["port"])
-    relay.start()
+    import omnet  # here, not at module level: omnet imports from this module
+
+    relay = None
+    opp = None
+    proc = None
     monitor = Monitor(ports["monitor_port"], ports["vehicle_sysid"])
     monitor.start()
     gcs = Gcs(cfg, stack, ports["vehicle_sysid"])
-    proc = launch_stack(profile, cfg, log_dir)
     code = 2
     try:
-        body(Session(cfg, profile, log_dir, gcs, relay, monitor, summary))
+        if link == "relay":
+            relay = UdpRelay(ports["vehicle_port"], cfg["gcs"]["port"])
+            relay.start()
+        else:
+            opp = omnet.launch(cfg, log_dir, ports["vehicle_port"], cfg["gcs"]["port"])
+        proc = launch_stack(profile, cfg, log_dir)
+        body(Session(cfg, profile, log_dir, gcs, link, relay, monitor, summary))
         code = 0
     except TestFailure as exc:
         log.error("FAIL: %s", exc)
@@ -531,15 +560,30 @@ def run_test(test: str, body: Any) -> int:
         log.exception("harness error")
         summary["error"] = repr(exc)
     finally:
-        if proc.poll() is not None:
-            log.error("stack exited early with %s (see sitl.log)", proc.returncode)
-        stop_stack(proc, cfg["timeouts_s"]["shutdown"])
+        if proc is not None:
+            if proc.poll() is not None:
+                log.error("stack exited early with %s (see sitl.log)", proc.returncode)
+            stop_stack(proc, cfg["timeouts_s"]["shutdown"])
         gcs.close()
         monitor.stop()
-        relay.stop()
+        if relay is not None:
+            relay.stop()
+            summary["relay"] = relay.stats.__dict__
+        if opp is not None:
+            omnet.stop(opp, cfg["omnetpp"]["stop_timeout_s"])
+            try:
+                summary["omnetpp"] = omnet.summarise(log_dir)
+                if code == 0:
+                    omnet.check(summary["omnetpp"])
+            except TestFailure as exc:
+                log.error("FAIL: %s", exc)
+                summary["failure"] = str(exc)
+                code = 1
+            except OSError as exc:
+                log.error("no omnetpp results: %s", exc)
+                code = code or 2
         summary.update(
             result={0: "PASS", 1: "FAIL"}.get(code, "ERROR"),
-            relay=relay.stats.__dict__,
             mode_changes=monitor.mode_changes,
             statustext=gcs.state.statustext[-50:],
             log_dir=log_dir,

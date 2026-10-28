@@ -7,7 +7,7 @@ PHASE ?= main
 
 .DEFAULT_GOAL := help
 .PHONY: help image claude claude-auto shell sim-build sim-run pilot campaign analyze test lint \
-        smoke failsafe stage1
+        smoke failsafe stage1 stage2
 
 help: ## Show targets
 	@grep -hE '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -42,6 +42,9 @@ failsafe: ## Stage 1: cut the C2 link, check the failsafe fires, per stack
 	@set -e; for p in $(STAGE1_PROFILES); do python sim/smoke/failsafe.py --profile $$p; done
 
 stage1: smoke failsafe ## Stage 1 pass criteria (docs/poc-plan.md)
+
+stage2: sim-build ## Stage 2: smoke test with C2 through OMNeT++/INET (socket bridge), per stack
+	@set -e; for p in $(STAGE1_PROFILES); do python sim/smoke/smoke.py --profile $$p --link omnetpp; done
 
 pilot: ## Run every pilot-phase run
 	python -m linkloss.orchestrate run-phase pilot

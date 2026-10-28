@@ -41,3 +41,23 @@ takeoff_reached_fraction: 0.8
 hover_s: 5.0
 position_rate_hz: 5.0
 failsafe_margin_s: 20.0     # wait timeout_s + this for the expected mode after the cut
+
+# C2 path: relay (stage 1, in-process Python relay) or omnetpp (stage 2+, socket bridge through
+# the simulated network, docs/decisions/0003). Override per test with --link.
+link: relay
+
+omnetpp:
+  ini: sim/omnetpp/omnetpp.ini
+  config: General
+  ned_path: sim                         # plus $INET_ROOT/src
+  bridge_lib: sim/bridge/linklossbridge  # built by `make sim-build`
+  ready_timeout_s: 30                   # until the vehicle-side real port is bound
+  stop_timeout_s: 15                    # SIGINT -> finish() writes the scalars
+
+# Application-level RTT: MAVLink TIMESYNC request (tc1=0) answered by the autopilot. Includes the
+# autopilot's handling time, so it is an upper bound on the network RTT.
+rtt:
+  samples: 50
+  interval_s: 0.1
+  timeout_s: 1.0
+  max_lost_fraction: 0.1

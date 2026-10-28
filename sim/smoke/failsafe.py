@@ -58,4 +58,5 @@ def body(s: Session) -> None:
 
 
 if __name__ == "__main__":
-    sys.exit(run_test("failsafe", body))
+    # The cut is done in the Python relay; cutting inside OMNeT++ is stage 4 (disruption injection).
+    sys.exit(run_test("failsafe", body, links=("relay",)))
