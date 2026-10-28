@@ -1,0 +1,30 @@
+# PoC profile (docs/poc-plan.md). Pins must match docker/Dockerfile and docs/decisions/0002.
+name: ardupilot_pymavlink
+
+flight:
+  stack: ardupilot
+  version: Copter-4.7.2     # ARDUPILOT_REF in docker/Dockerfile
+  sitl:
+    model: quad             # arducopter --model (built-in physics, no Gazebo)
+    defaults: Tools/autotest/default_params/copter.parm   # relative to ARDUPILOT_ROOT
+  params: {}
+
+gs:
+  software: pymavlink
+  version: 2.4.50
+  config_file: null
+
+link:
+  protocol: MAVLink 2 over UDP
+  notes: "C2 on --serial0 udpclient; monitor on --serial1 udpclient (test-only)."
+
+failsafe:
+  timeout_s: 5
+  action: return
+  expected_mode: RTL
+  native:
+    FS_GCS_ENABLE: 1        # 1 = RTL (default 0 = disabled)
+    FS_GCS_TIMEOUT: 5       # s (default 5, range 2-120)
+    # GCS identity: MAV_GCS_SYSID (renamed from SYSID_MYGCS in 4.7), default 255 = our GCS sysid.
+
+notes: "Failsafe parameter names read from ArduCopter/Parameters.cpp at Copter-4.7.2."

@@ -1,11 +1,9 @@
 # THE factor grid. Nothing else may hard-code profile/disruption/background/seed lists.
 #
-# The proposal fixes the TOTALS (216 main, 48 pilot, 18 extra) but not the factorisation. The grids
-# below are ONE assumption that hits the totals; confirm or replace them (and update tests/test_design.py
-# only if the totals change):
-#   main : 4 profiles x 3 disruptions x 3 backgrounds x 6 seeds = 216
-#   pilot: 4 profiles x 3 disruptions x 2 backgrounds x 2 seeds = 48
-# Profile names are placeholders until the GS/flight stacks are chosen.
+# The proposal fixes the TOTALS (216 main, 48 pilot, 18 extra). The 6 profiles (autopilot x GS x
+# payload combinations) are not yet defined; only the first two exist for the PoC.
+#   main : 6 profiles x 3 disruptions x 3 backgrounds x 4 seeds = 216
+#   pilot: 6 profiles x 2 disruptions x 2 backgrounds x 2 seeds = 48   (assumption)
 #
 # Pilot seeds are disjoint from main seeds on purpose: decisions tuned on pilot data must not be
 # evaluated on the same randomness.
@@ -13,19 +11,19 @@
 phases:
   pilot:
     factors:
-      profile: [profile_a, profile_b, profile_c, profile_d]
-      disruption: [link_loss, congestion, weak_radio]
+      profile: [px4_pymavlink, ardupilot_pymavlink, profile_c, profile_d, profile_e, profile_f]
+      disruption: [link_loss, congestion]
       radio_background: [low, high]
       seed: {base: 9000, count: 2}
 
   main:
     factors:
-      profile: [profile_a, profile_b, profile_c, profile_d]
+      profile: [px4_pymavlink, ardupilot_pymavlink, profile_c, profile_d, profile_e, profile_f]
       disruption: [link_loss, congestion, weak_radio]
       radio_background: [low, medium, high]
-      seed: {base: 1000, count: 6}
+      seed: {base: 1000, count: 4}
 
-  # 18 extra runs are planned in the proposal; purpose not specified there (H4 equalised-failsafe
-  # runs are one candidate). Left empty until decided.
+  # 18 extra runs planned in the proposal; purpose not specified there. Candidate: H4 runs with
+  # equalised failsafe timeouts (6 profiles x link_loss x 1 background x 3 seeds). Undecided.
   extra:
     factors: null

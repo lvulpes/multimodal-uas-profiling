@@ -1,0 +1,43 @@
+# Stage-1 test harness (docs/poc-plan.md): SITL + pymavlink GCS, no OMNeT++. Not a run config:
+# nothing here goes to data/raw. Logs go to <log_root>/<test>-<profile>-<utc>/.
+log_root: data/smoke
+
+home: {lat: 59.3496, lon: 18.0703, alt_m: 30.0}   # same for every stack (avoid location as a label)
+
+gcs:
+  system_id: 255            # = ArduPilot MAV_GCS_SYSID default; PX4 accepts any GCS sysid
+  component_id: 190         # MAV_COMP_ID_MISSIONPLANNER
+  heartbeat_hz: 1.0
+  port: 14600               # GCS listens here; the relay sends to it
+
+# gz-transport discovery uses UDP multicast, which the sandbox egress firewall drops (verified:
+# `gz topic -l` sees nothing without this). Pin it to loopback; one partition per test isolates
+# stray gz servers.
+gazebo:
+  ip: 127.0.0.1             # GZ_IP
+
+# The C2 link for stage 1 is an in-process UDP relay; "cut" drops both directions. A separate
+# monitor socket listens passively on a second vehicle link (sends nothing, so it cannot keep the
+# GCS link alive) so the failsafe can be observed while C2 is down.
+stacks:
+  px4:
+    vehicle_port: 14550     # fixed upstream: PX4 GCS link sends to 14550
+    monitor_port: 14540     # fixed upstream: PX4 onboard link (-m onboard -o 14540)
+    vehicle_sysid: 1
+  ardupilot:
+    vehicle_port: 14560
+    monitor_port: 14561
+    vehicle_sysid: 1
+
+timeouts_s:
+  heartbeat: 120            # PX4 includes Gazebo startup
+  ready_to_arm: 120         # GPS/EKF convergence
+  takeoff: 45
+  param: 5
+  shutdown: 10
+
+takeoff_alt_m: 5.0
+takeoff_reached_fraction: 0.8
+hover_s: 5.0
+position_rate_hz: 5.0
+failsafe_margin_s: 20.0     # wait timeout_s + this for the expected mode after the cut

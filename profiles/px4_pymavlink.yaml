@@ -1,0 +1,31 @@
+# PoC profile (docs/poc-plan.md). Pins must match docker/Dockerfile and docs/decisions/0002.
+name: px4_pymavlink
+
+flight:
+  stack: px4
+  version: v1.17.0          # PX4_REF in docker/Dockerfile
+  sitl:
+    model: gz_x500          # PX4_SIM_MODEL; airframe 4001_gz_x500
+    world: default          # PX4_GZ_WORLD
+    headless: true          # HEADLESS=1: gz server only, no GUI
+  params: {}                # extra native params set by the GCS before flight
+
+gs:
+  software: pymavlink
+  version: 2.4.50           # docker/requirements.txt
+  config_file: null
+
+link:
+  protocol: MAVLink 2 over UDP
+  notes: "PX4 GCS link: mavlink -u 18570, remote 14550 (px4-rc.mavlink, fixed upstream)."
+
+failsafe:                   # H4: normalised keys, mapped to native names below
+  timeout_s: 5
+  action: return
+  expected_mode: RTL        # pymavlink mode string the action shows up as
+  native:
+    COM_DL_LOSS_T: 5        # s without GCS heartbeat -> datalink lost (default 10)
+    NAV_DLL_ACT: 2          # 2 = Return (default 0 = disabled)
+    COM_FAIL_ACT_T: 5       # s hold before the action runs (default 5). Effective delay = sum.
+
+notes: "Failsafe parameter names and defaults read from parameters.json of the v1.17.0 build."
