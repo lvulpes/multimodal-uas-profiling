@@ -35,3 +35,7 @@ ground-station software and payload) is not defined yet.
 - pymavlink is a stand-in GS; real GS software may behave differently and matter for the fingerprint.
 - Failsafe parameter names per stack (needed for H4 equalisation) must be looked up in the stacks' docs for
   the pinned versions, not assumed.
+
+# Claude session
+
+claude --resume f854c713-22fe-43c6-931d-53b745e8fe01

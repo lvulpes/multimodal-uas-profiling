@@ -27,3 +27,7 @@ Each test prints PASS or FAIL and exits non-zero on failure, so make stage1 stop
 - test.log: what the ground station saw, including the vehicle's status messages
 - sitl.log: the flight stack's own output, the first place to look if a stack fails to start
 
+# Resuming the poc session
+
+claude --resume f854c713-22fe-43c6-931d-53b745e8fe01
+
