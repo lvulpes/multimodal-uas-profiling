@@ -3,7 +3,9 @@ data/
 # Supervisor's test-design document: kept locally, not distributed.
 docs/test-design.pdf
 docs/paper-1.pdf
+docs/paper-1-abstract.md
 docs/paper-2.pdf
+docs/paper-2-abstract.md
 __pycache__/
 .pytest_cache/
 .ruff_cache/
