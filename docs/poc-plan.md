@@ -35,6 +35,20 @@ ground-station software and payload) is not defined yet.
 - pymavlink is a stand-in GS; real GS software may behave differently and matter for the fingerprint.
 - Failsafe parameter names per stack (needed for H4 equalisation) must be looked up in the stacks' docs for
   the pinned versions, not assumed.
+- **To discuss with the supervisor (H2): where would a simulated L1 fingerprint come from?** All profiles
+  share the same simulated radio, and the UE is static (`StationaryMobility`, 1.5 m high); nothing feeds
+  Gazebo's position into Simu5G, so different failsafe manoeuvres look the same to the radio. In the
+  stage-3 runs (one per stack, 2026-11-03) both stacks had identical SINR limits: `rcvdSinrDl` 65.746 dB,
+  `rcvdSinrUl` 46.748–56.124 dB. Seeds were not varied, so this is only an indication. If L1 differences
+  can only come from traffic patterns, which L2/L3 already sees, the fusion gain could be close to zero
+  because of how the testbed is built. Related: transmit power, ADR 0004. Proposed changes, not yet in
+  the stage table:
+  - Stage 4: realise `link_loss` at the radio level rather than dropping packets at the bridge, so L1 sees
+    the disruption. How Simu5G handles a lost radio link is unverified.
+  - Stage 5: add a criterion that at least one L1 feature differs between profiles beyond what traffic
+    explains.
+  - Before stage 5: decide whether to couple Gazebo's position to the UE's mobility, possibly as its own
+    stage.
 
 # Claude session
 
