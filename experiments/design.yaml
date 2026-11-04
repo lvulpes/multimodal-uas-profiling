@@ -1,9 +1,15 @@
 # THE factor grid. Nothing else may hard-code profile/disruption/background/seed lists.
 #
-# The proposal fixes the TOTALS (216 main, 48 pilot, 18 extra). The 6 profiles (autopilot x GS x
-# payload combinations) are not yet defined; only the first two exist for the PoC.
-#   main : 6 profiles x 3 disruptions x 3 backgrounds x 4 seeds = 216
-#   pilot: 6 profiles x 2 disruptions x 2 backgrounds x 2 seeds = 48   (assumption)
+# Source: test-design document from a supervisor/examiner (not in the repo), quoted in docs/poc-plan.md.
+# The proposal only gives the totals.
+#   main : 6 profiles x 4 disruptions x 3 backgrounds x 3 seeds = 216
+#   pilot: 4 profiles x 4 disruptions x clean background x 3 seeds = 48
+#   extra: matched-timeout arm (H4), 6 profiles x 3 seeds, long disruption = 18
+#
+# Names are PLACEHOLDERS until the open items in docs/poc-plan.md are settled: profile_c..f,
+# disruption_1..4 (lengths bracketing the failsafe timeouts, 4 = longest).
+#
+# A seed sets the route and start time (docs/poc-plan.md).
 #
 # Pilot seeds are disjoint from main seeds on purpose: decisions tuned on pilot data must not be
 # evaluated on the same randomness.
@@ -11,19 +17,24 @@
 phases:
   pilot:
     factors:
-      profile: [px4_pymavlink, ardupilot_pymavlink, profile_c, profile_d, profile_e, profile_f]
-      disruption: [link_loss, congestion]
-      radio_background: [low, high]
-      seed: {base: 9000, count: 2}
+      profile: [px4_pymavlink, ardupilot_pymavlink, profile_c, profile_d]   # which 4 is an assumption
+      disruption: [disruption_1, disruption_2, disruption_3, disruption_4]
+      radio_background: [clean]
+      seed: {base: 9000, count: 3}
 
   main:
     factors:
       profile: [px4_pymavlink, ardupilot_pymavlink, profile_c, profile_d, profile_e, profile_f]
-      disruption: [link_loss, congestion, weak_radio]
-      radio_background: [low, medium, high]
-      seed: {base: 1000, count: 4}
+      disruption: [disruption_1, disruption_2, disruption_3, disruption_4]
+      radio_background: [clean, congested, weak]
+      seed: {base: 1000, count: 3}
 
-  # 18 extra runs planned in the proposal; purpose not specified there. Candidate: H4 runs with
-  # equalised failsafe timeouts (6 profiles x link_loss x 1 background x 3 seeds). Undecided.
+  # Failsafe timeouts and actions set equal across profiles. Not read by the loader yet; the
+  # orchestrator must apply it. Assumptions: clean background, and main seeds so that routes pair with main.
   extra:
-    factors: null
+    failsafe: matched
+    factors:
+      profile: [px4_pymavlink, ardupilot_pymavlink, profile_c, profile_d, profile_e, profile_f]
+      disruption: [disruption_4]
+      radio_background: [clean]
+      seed: {base: 1000, count: 3}

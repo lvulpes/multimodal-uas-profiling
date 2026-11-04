@@ -1,11 +1,13 @@
-# Radio background levels (factor `radio_background`). Placeholders for the simulation POC.
+# Radio background levels (factor `radio_background`). Realisation to be set in the simulation POC.
+# H3 compares the response to link loss against benign congestion and weak radio.
 
-low:
-  description: Lightly loaded cell.
-  # TODO(POC): number/traffic of background UEs in Simu5G.
+clean:
+  description: No competing traffic and good radio conditions.
 
-medium:
-  description: Moderately loaded cell.
+congested:
+  description: Benign congestion - link stays up, delay and loss increase from competing traffic.
+  # TODO(POC): competing traffic model and intensity.
 
-high:
-  description: Heavily loaded cell.
+weak:
+  description: Degraded radio - low SNR / high loss without the link fully going away.
+  # TODO(POC): path loss / interference profile and how it ramps.

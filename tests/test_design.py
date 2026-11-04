@@ -13,6 +13,10 @@ def test_pilot_phase_has_48_runs():  # total stated in the proposal
     assert len(load_runs(DESIGN, "pilot")) == 48
 
 
+def test_extra_phase_has_18_runs():  # total stated in the proposal
+    assert len(load_runs(DESIGN, "extra")) == 18
+
+
 def test_run_ids_unique_and_pilot_seeds_disjoint_from_main():
     runs = load_runs(DESIGN)
     assert len({r.run_id for r in runs}) == len(runs)

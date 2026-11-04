@@ -1,5 +1,9 @@
 # Raw and derived data never go in git (CLAUDE.md rule 2).
 data/
+# Supervisor's test-design document: kept locally, not distributed.
+docs/test-design.pdf
+docs/paper-1.pdf
+docs/paper-2.pdf
 __pycache__/
 .pytest_cache/
 .ruff_cache/

@@ -5,7 +5,7 @@ Touches: sim, infra, H4
 
 ## Context
 The PoC (docs/poc-plan.md) needs two different autopilot stacks behind the same ground station
-(pymavlink) so that stage 5 can compare profiles. Their link-loss behaviour must be configurable
+(pymavlink) so that stage 6 can compare profiles. Their link-loss behaviour must be configurable
 through native parameters (H4). The sandbox has no sudo and blocks apt, so the stacks must be built
 in the Docker image, and builds must be reproducible from a pinned source.
 
@@ -49,4 +49,4 @@ in the Docker image, and builds must be reproducible from a pinned source.
 - `make`/`waf` cannot be re-run inside the image (no `.git`, root-owned); changing stack code means a
   rebuild. Bumping a pin means rebuilding and re-checking the parameter names above.
 - Simulated physics differs between the stacks (Gazebo vs built-in). This is part of the profile, not a
-  controlled variable; note it when interpreting stage-5 differences.
+  controlled variable; note it when interpreting stage-6 differences.

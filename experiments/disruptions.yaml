@@ -1,14 +1,15 @@
-# Disruption levels (factor `disruption`). Placeholders: parameters to be set in the simulation POC.
-# H3 compares the response to link loss against benign congestion and weak radio.
+# Disruption levels (factor `disruption`): C2 link loss of increasing length.
+# Lengths TBD: chosen to bracket the failsafe timeouts of the stacks in use, from the firmware docs.
+# TODO(POC): how link loss is realised (e.g. drop all C2 traffic / radio path removed) and onset time.
 
-link_loss:
-  description: Hard C2 link loss (radio link goes away).
-  # TODO(POC): how it is realised (e.g. drop all C2 traffic / radio path removed), duration, onset time.
+disruption_1:
+  description: Shortest C2 link loss.
 
-congestion:
-  description: Benign congestion - link stays up, delay and loss increase from competing traffic.
-  # TODO(POC): competing traffic model and intensity.
+disruption_2:
+  description: C2 link loss.
 
-weak_radio:
-  description: Degraded radio - low SNR / high loss without the link fully going away.
-  # TODO(POC): path loss / interference profile and how it ramps.
+disruption_3:
+  description: C2 link loss.
+
+disruption_4:
+  description: Longest C2 link loss, also used by the matched-timeout arm.
