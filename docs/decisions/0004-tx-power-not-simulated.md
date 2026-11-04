@@ -55,8 +55,11 @@ For the PoC stages, transmit power stays a fixed per-run configuration value, no
   be added later as a PHY subclass without changing the rest of the ladder (not yet prototyped).
 - **Energy proxy** (served RBs × fixed power): honest, but it is a rescaling of the airtime feature and
   adds nothing for H2. It does not address the uplink SINR distortion.
-- **Use a different radio simulator with power control**: rejected for now. Simu5G is fixed by the
-  proposal and stages 1–3 are built on it.
+- **Use a different radio simulator with power control** (e.g. ns-3 with 5G-LENA, or OpenAirInterface):
+  not chosen for now, but still open. The proposal only lists Simu5G among the modules "proposed for the
+  testbed", and redoing PoC stages is acceptable before the thesis starts. The choice depends on which
+  radio the UAS is meant to use (`docs/poc-plan.md`, Open items). Switching would not by itself make the
+  radio's UE follow the flown vehicle.
 
 ## Consequences
 - We give up any fingerprint signal carried by how a real UE's transmit power reacts to link loss
@@ -70,5 +73,6 @@ For the PoC stages, transmit power stays a fixed per-run configuration value, no
   question, or the RF lab capture shows received-power variation around a disruption that simulated SINR
   and airtime do not reflect. Either case reopens the first alternative, recorded as a new ADR that
   supersedes this one.
-- Unverified: whether a newer Simu5G release adds uplink power control. Check the release notes before
-  revisiting.
+- Newer Simu5G releases: the upstream changelog (`WHATSNEW.md`, up to v1.8.0, checked 2026-11-04; we use
+  v1.6.0) does not mention uplink power control. That was a keyword search of the changelog only, so check
+  the code before relying on it.
