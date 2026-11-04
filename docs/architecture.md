@@ -37,9 +37,11 @@ These are my reasoning from the proposal, not verified facts.
    chosen stack, and can they be made equal without changing other behaviour?
 5. **One timebase.** Use wall-clock as the common timebase for Gazebo, OMNeT++, flight/GS logs, pcap and
    (later) the I/Q capture; define the marker used to align the SDR recording.
-6. **Reproducibility claim.** Real-time coupling is not bit-exact, so seeds control the OMNeT++ RNG
-   streams and disruption timing only; claim statistical reproducibility.
+6. **Reproducibility claim.** Real-time coupling is not bit-exact, so seeds control the route and
+   start time (`docs/poc-plan.md`), the OMNeT++ RNG streams and disruption timing, and no other part of
+   the run; claim statistical reproducibility.
 7. **Is Gazebo needed per run?** Flight-failsafe behaviour needs vehicle state, but a headless or
    simplified physics setup may be enough and would cut resource use.
-8. **Factorisation.** The proposal gives totals (216/48/18) but not the factor levels; see the
-   assumption stated in `experiments/design.yaml`.
+8. **Factorisation.** The proposal gives totals (216/48/18); the factor levels come from a supervisor's
+   test-design document (quoted in `docs/poc-plan.md`). Level names are still placeholders, see
+   `experiments/design.yaml`.
